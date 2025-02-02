@@ -1,5 +1,4 @@
 'use client';
-
 import * as React from 'react';
 import Avatar from '@mui/material/Avatar';
 import Badge from '@mui/material/Badge';
@@ -11,15 +10,12 @@ import { Bell as BellIcon } from '@phosphor-icons/react/dist/ssr/Bell';
 import { List as ListIcon } from '@phosphor-icons/react/dist/ssr/List';
 import { MagnifyingGlass as MagnifyingGlassIcon } from '@phosphor-icons/react/dist/ssr/MagnifyingGlass';
 import { Users as UsersIcon } from '@phosphor-icons/react/dist/ssr/Users';
-
 import { usePopover } from '@/hooks/use-popover';
-
 import { MobileNav } from './mobile-nav';
 import { UserPopover } from './user-popover';
 
 export function MainNav(): React.JSX.Element {
   const [openNav, setOpenNav] = React.useState<boolean>(false);
-
   const userPopover = usePopover<HTMLDivElement>();
 
   return (
@@ -54,12 +50,16 @@ export function MainNav(): React.JSX.Element {
               onClick={userPopover.handleOpen}
               ref={userPopover.anchorRef}
               src="/assets/logo.png"
-              sx={{ cursor: 'pointer' , bgcolor: '#000' }}
+              sx={{ cursor: 'pointer', bgcolor: '#000' }}
             />
           </Stack>
         </Stack>
       </Box>
-      <UserPopover anchorEl={userPopover.anchorRef.current} onClose={userPopover.handleClose} open={userPopover.open} />
+      <UserPopover
+        anchorEl={userPopover.anchorRef.current}
+        onClose={userPopover.handleClose}
+        open={userPopover.open}
+      />
       <MobileNav
         onClose={() => {
           setOpenNav(false);

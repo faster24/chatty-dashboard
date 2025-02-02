@@ -57,10 +57,12 @@ export default function Page() {
   const rowsPerPage = 4;
 
   useEffect(() => {
-    fetchStickers();
+    fetchStickers().catch((error) => {
+      console.error('Error in fetchStickers:', error);
+    });
   }, []);
 
-  const fetchStickers = async () => {
+  const fetchStickers = async (): Promise<void> => {
     try {
       const res = await axios.get<{ data: Sticker[] }>(`${API_BASE_URL}/stickers`);
       setStickers(res.data.data);
@@ -69,15 +71,13 @@ export default function Page() {
     }
   };
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (event.target.files && event.target.files[0]) {
-      setFile(event.target.files[0]);
-    }
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
+    setFile(event.target.files?.[0] ?? null);
   };
 
-  const handleUpload = async () => {
+  const handleUpload = async (): Promise<void> => {
     if (!file) {
-      alert('Please select a file before uploading.');
+      toast.error('Please select a file before uploading.');
       return;
     }
 
@@ -93,7 +93,7 @@ export default function Page() {
         },
       });
       toast.success('Successfully Uploaded');
-      fetchStickers(); // Refresh table
+      await fetchStickers(); // Refresh table
     } catch (error) {
       console.error('Error uploading file:', error);
     } finally {
@@ -101,13 +101,10 @@ export default function Page() {
     }
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (id: string): Promise<void> => {
     try {
-      // Send DELETE request to the backend
       await axios.delete(`${API_BASE_URL}/sticker/${id}`);
       toast.warn('Deleted successfully');
-
-      // Update the UI by removing the deleted sticker
       setStickers((prevStickers) => prevStickers.filter((sticker) => sticker._id !== id));
     } catch (error) {
       console.error('Error deleting sticker:', error);
@@ -120,13 +117,13 @@ export default function Page() {
   const indexOfFirstRow = indexOfLastRow - rowsPerPage;
   const currentRows = stickers.slice(indexOfFirstRow, indexOfLastRow);
 
-  const nextPage = () => {
+  const nextPage = (): void => {
     if (currentPage < Math.ceil(stickers.length / rowsPerPage)) {
       setCurrentPage(currentPage + 1);
     }
   };
 
-  const prevPage = () => {
+  const prevPage = (): void => {
     if (currentPage > 1) {
       setCurrentPage(currentPage - 1);
     }
