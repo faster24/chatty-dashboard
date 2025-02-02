@@ -1,4 +1,4 @@
-'use client'
+'use client';
 import * as React from 'react';
 import { useState, useEffect } from 'react';
 import {
@@ -39,14 +39,21 @@ const VisuallyHiddenInput = styled('input')({
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:3000/api/v1';
 
+// Define the type for a sticker
+interface Sticker {
+  _id: string;
+  code: string;
+  file_path: string;
+}
+
 export default function Page() {
-  const [file, setFile] = useState(null);
-  const [code, setCode] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [stickers, setStickers] = useState([]);
+  const [file, setFile] = useState<File | null>(null);
+  const [code, setCode] = useState<string>('');
+  const [loading, setLoading] = useState<boolean>(false);
+  const [stickers, setStickers] = useState<Sticker[]>([]);
 
   // Pagination State
-  const [currentPage, setCurrentPage] = useState(1);
+  const [currentPage, setCurrentPage] = useState<number>(1);
   const rowsPerPage = 4;
 
   useEffect(() => {
@@ -55,15 +62,17 @@ export default function Page() {
 
   const fetchStickers = async () => {
     try {
-      const res = await axios.get(`${API_BASE_URL}/stickers`);
+      const res = await axios.get<{ data: Sticker[] }>(`${API_BASE_URL}/stickers`);
       setStickers(res.data.data);
     } catch (error) {
       console.error('Error fetching stickers:', error);
     }
   };
 
-  const handleFileChange = (event) => {
-    setFile(event.target.files[0]);
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.files && event.target.files[0]) {
+      setFile(event.target.files[0]);
+    }
   };
 
   const handleUpload = async () => {
@@ -92,7 +101,7 @@ export default function Page() {
     }
   };
 
-  const handleDelete = async (id) => {
+  const handleDelete = async (id: string) => {
     try {
       // Send DELETE request to the backend
       await axios.delete(`${API_BASE_URL}/sticker/${id}`);
