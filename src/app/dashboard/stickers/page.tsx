@@ -1,14 +1,26 @@
 'use client'
 import * as React from 'react';
-import { useState } from 'react';
-import Button from '@mui/material/Button';
-import Stack from '@mui/material/Stack';
-import { TextField , Box , Select , MenuItem , FormControl , InputLabel } from '@mui/material';
+import { useState, useEffect } from 'react';
+import {
+  Button,
+  Stack,
+  TextField,
+  Box,
+  FormControl,
+  Typography,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  IconButton,
+  TableFooter,
+} from '@mui/material';
 import { Upload as UploadIcon } from '@phosphor-icons/react/dist/ssr/Upload';
-import dayjs from 'dayjs';
-import { CustomersFilters } from '@/components/dashboard/customer/customers-filters';
-import { CustomersTable } from '@/components/dashboard/customer/customers-table';
-import type { Customer } from '@/components/dashboard/customer/customers-table';
+import { Trash as TrashIcon } from '@phosphor-icons/react/dist/ssr/Trash';
+import { ArrowLeft, ArrowRight } from '@phosphor-icons/react';
 import { styled } from '@mui/material/styles';
 import axios from 'axios';
 import { ToastContainer, toast } from 'react-toastify';
@@ -25,228 +37,160 @@ const VisuallyHiddenInput = styled('input')({
   width: 1,
 });
 
-const customers = [
-  {
-    id: 'USR-010',
-    name: 'Alcides Antonio',
-    avatar: '/assets/avatar-10.png',
-    email: 'alcides.antonio@devias.io',
-    phone: '908-691-3242',
-    address: { city: 'Madrid', country: 'Spain', state: 'Comunidad de Madrid', street: '4158 Hedge Street' },
-    createdAt: dayjs().subtract(2, 'hours').toDate(),
-  },
-  {
-    id: 'USR-009',
-    name: 'Marcus Finn',
-    avatar: '/assets/avatar-9.png',
-    email: 'marcus.finn@devias.io',
-    phone: '415-907-2647',
-    address: { city: 'Carson City', country: 'USA', state: 'Nevada', street: '2188 Armbrester Drive' },
-    createdAt: dayjs().subtract(2, 'hours').toDate(),
-  },
-  {
-    id: 'USR-008',
-    name: 'Jie Yan',
-    avatar: '/assets/avatar-8.png',
-    email: 'jie.yan.song@devias.io',
-    phone: '770-635-2682',
-    address: { city: 'North Canton', country: 'USA', state: 'Ohio', street: '4894 Lakeland Park Drive' },
-    createdAt: dayjs().subtract(2, 'hours').toDate(),
-  },
-  {
-    id: 'USR-007',
-    name: 'Nasimiyu Danai',
-    avatar: '/assets/avatar-7.png',
-    email: 'nasimiyu.danai@devias.io',
-    phone: '801-301-7894',
-    address: { city: 'Salt Lake City', country: 'USA', state: 'Utah', street: '368 Lamberts Branch Road' },
-    createdAt: dayjs().subtract(2, 'hours').toDate(),
-  },
-  {
-    id: 'USR-006',
-    name: 'Iulia Albu',
-    avatar: '/assets/avatar-6.png',
-    email: 'iulia.albu@devias.io',
-    phone: '313-812-8947',
-    address: { city: 'Murray', country: 'USA', state: 'Utah', street: '3934 Wildrose Lane' },
-    createdAt: dayjs().subtract(2, 'hours').toDate(),
-  },
-  {
-    id: 'USR-005',
-    name: 'Fran Perez',
-    avatar: '/assets/avatar-5.png',
-    email: 'fran.perez@devias.io',
-    phone: '712-351-5711',
-    address: { city: 'Atlanta', country: 'USA', state: 'Georgia', street: '1865 Pleasant Hill Road' },
-    createdAt: dayjs().subtract(2, 'hours').toDate(),
-  },
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:3000/api/v1';
 
-  {
-    id: 'USR-004',
-    name: 'Penjani Inyene',
-    avatar: '/assets/avatar-4.png',
-    email: 'penjani.inyene@devias.io',
-    phone: '858-602-3409',
-    address: { city: 'Berkeley', country: 'USA', state: 'California', street: '317 Angus Road' },
-    createdAt: dayjs().subtract(2, 'hours').toDate(),
-  },
-  {
-    id: 'USR-003',
-    name: 'Carson Darrin',
-    avatar: '/assets/avatar-3.png',
-    email: 'carson.darrin@devias.io',
-    phone: '304-428-3097',
-    address: { city: 'Cleveland', country: 'USA', state: 'Ohio', street: '2849 Fulton Street' },
-    createdAt: dayjs().subtract(2, 'hours').toDate(),
-  },
-  {
-    id: 'USR-002',
-    name: 'Siegbert Gottfried',
-    avatar: '/assets/avatar-2.png',
-    email: 'siegbert.gottfried@devias.io',
-    phone: '702-661-1654',
-    address: { city: 'Los Angeles', country: 'USA', state: 'California', street: '1798 Hickory Ridge Drive' },
-    createdAt: dayjs().subtract(2, 'hours').toDate(),
-  },
-  {
-    id: 'USR-001',
-    name: 'Miron Vitold',
-    avatar: '/assets/avatar-1.png',
-    email: 'miron.vitold@devias.io',
-    phone: '972-333-4106',
-    address: { city: 'San Diego', country: 'USA', state: 'California', street: '75247' },
-    createdAt: dayjs().subtract(2, 'hours').toDate(),
-  },
-] satisfies Customer[];
+export default function Page() {
+  const [file, setFile] = useState(null);
+  const [code, setCode] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [stickers, setStickers] = useState([]);
 
-export default function Page(): React.JSX.Element {
-  const page = 0;
-  const rowsPerPage = 5;
-  const [file , setFile] = useState(null)
-  const [code , setCode] = useState('')
-  const [groupId , setGroupId] = useState('')
-  const [loading , setLoading] = useState(false)
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1);
+  const rowsPerPage = 4;
 
-  const paginatedCustomers = applyPagination(customers, page, rowsPerPage);
+  useEffect(() => {
+    fetchStickers();
+  }, []);
+
+  const fetchStickers = async () => {
+    try {
+      const res = await axios.get(`${API_BASE_URL}/stickers`);
+      setStickers(res.data.data);
+    } catch (error) {
+      console.error('Error fetching stickers:', error);
+    }
+  };
 
   const handleFileChange = (event) => {
     setFile(event.target.files[0]);
-  }
+  };
 
   const handleUpload = async () => {
     if (!file) {
-      alert("Please select a file before uploading.");
+      alert('Please select a file before uploading.');
       return;
     }
 
     const formData = new FormData();
-    formData.append("image", file);
-    formData.append("code", code);
-    formData.append("group_id", groupId);
+    formData.append('image', file);
+    formData.append('code', code);
 
     try {
       setLoading(true);
-      const response = await axios.post("http://localhost:8000/api/v1/sticker", formData, {
+      await axios.post(`${API_BASE_URL}/sticker`, formData, {
         headers: {
-          "Content-Type": "multipart/form-data",
+          'Content-Type': 'multipart/form-data',
         },
       });
-
-      toast('Successfully Uploaded', {
-        position: "top-right",
-        autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: false,
-        pauseOnHover: true,
-        draggable: true,
-        progress: undefined,
-        theme: "light",
-      });
-
+      toast.success('Successfully Uploaded');
+      fetchStickers(); // Refresh table
     } catch (error) {
-      console.error("Error uploading file:", error);
+      console.error('Error uploading file:', error);
     } finally {
       setLoading(false);
     }
-  }
+  };
+
+  const handleDelete = async (id) => {
+    try {
+      // Send DELETE request to the backend
+      await axios.delete(`${API_BASE_URL}/sticker/${id}`);
+      toast.warn('Deleted successfully');
+
+      // Update the UI by removing the deleted sticker
+      setStickers((prevStickers) => prevStickers.filter((sticker) => sticker._id !== id));
+    } catch (error) {
+      console.error('Error deleting sticker:', error);
+      toast.error('Failed to delete sticker');
+    }
+  };
+
+  // Pagination Calculations
+  const indexOfLastRow = currentPage * rowsPerPage;
+  const indexOfFirstRow = indexOfLastRow - rowsPerPage;
+  const currentRows = stickers.slice(indexOfFirstRow, indexOfLastRow);
+
+  const nextPage = () => {
+    if (currentPage < Math.ceil(stickers.length / rowsPerPage)) {
+      setCurrentPage(currentPage + 1);
+    }
+  };
+
+  const prevPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+    }
+  };
 
   return (
-    <Stack spacing={3}>
+    <Stack spacing={3} sx={{ maxWidth: '900px', mx: 'auto', p: 3 }}>
       <ToastContainer />
-      <Box
-        display="flex"
-        alignItems="flex-start"
-        justifyContent="flex-start"
-        sx={{
-          gap: 2,
-          maxWidth: '100%',
-          mx:'auto',
-          mt: 4,
-          p: 3,
-        }}
-      >
+
+      <Typography variant="h4" component="h1" sx={{ textAlign: 'center', mt: 2 }}>
+        Stickers
+      </Typography>
+
+      <Box display="flex" alignItems="center" gap={2} sx={{ p: 3, backgroundColor: '#f5f5f5', borderRadius: 2, boxShadow: 1 }}>
         <FormControl fullWidth>
-          <TextField
-            label="Code"
-            name="code"
-            value={code}
-            onChange={(e) => setCode(e.target.value)}
-            fullWidth
-          />
+          <TextField label="Code Name" value={code} onChange={(e) => setCode(e.target.value)} fullWidth />
         </FormControl>
 
-        <FormControl fullWidth>
-          <InputLabel id="demo-simple-select-label">Group</InputLabel>
-          <Select
-            labelId="demo-simple-select-label"
-            id="demo-simple-select"
-            value={groupId}
-            onChange={(e) => setGroupId(e.target.value)}
-            label="Group Name"
-          >
-            <MenuItem value={1}>Simple</MenuItem>
-            <MenuItem value={2}>Basic</MenuItem>
-            <MenuItem value={3}>General</MenuItem>
-          </Select>
-        </FormControl>
-
-        <Button
-          component="label"
-          variant="contained"
-          tabIndex={-1}
-          startIcon={<UploadIcon />}
-          sx={{
-            width: '90px',
-            px: 6,
-            py: 2,
-          }}
-        >
+        <Button component="label" variant="contained" startIcon={<UploadIcon />}>
           Upload
-          <VisuallyHiddenInput
-            type="file"
-            onChange={handleFileChange}
-          />
+          <VisuallyHiddenInput type="file" onChange={handleFileChange} />
         </Button>
 
-        <Button
-          component="label"
-          variant="contained"
-          color='primary'
-          tabIndex={-1}
-          onClick={handleUpload}
-          sx={{
-            width: '90px',
-            px: 6,
-            py: 2,
-          }}
-        >
-          Submit
+        <Button variant="contained" color="primary" onClick={handleUpload} disabled={loading}>
+          {loading ? 'Uploading...' : 'Submit'}
         </Button>
       </Box>
+
+      <TableContainer component={Paper} sx={{ borderRadius: 2, boxShadow: 2 }}>
+        <Table>
+          <TableHead>
+            <TableRow sx={{ backgroundColor: '#1976d2' }}>
+              <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>#</TableCell>
+              <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Code</TableCell>
+              <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Image</TableCell>
+              <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Action</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {currentRows.map((sticker, index) => (
+              <TableRow key={sticker._id} hover>
+                <TableCell>{indexOfFirstRow + index + 1}</TableCell>
+                <TableCell>{sticker.code}</TableCell>
+                <TableCell>
+                  <img
+                    src={`${process.env.NEXT_PUBLIC_APP_URL}/${sticker.file_path}`}
+                    alt={sticker.code}
+                    style={{ width: 50, height: 50 }}
+                  />
+                </TableCell>
+                <TableCell>
+                  <IconButton onClick={() => handleDelete(sticker._id)} color="error">
+                    <TrashIcon size={20} />
+                  </IconButton>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+          <TableFooter>
+            <TableRow>
+              <TableCell colSpan={4} align="center">
+                <Button onClick={prevPage} disabled={currentPage === 1} startIcon={<ArrowLeft />}>
+                  Previous
+                </Button>
+                Page {currentPage} of {Math.ceil(stickers.length / rowsPerPage)}
+                <Button onClick={nextPage} disabled={currentPage === Math.ceil(stickers.length / rowsPerPage)} endIcon={<ArrowRight />}>
+                  Next
+                </Button>
+              </TableCell>
+            </TableRow>
+          </TableFooter>
+        </Table>
+      </TableContainer>
     </Stack>
   );
-}
-
-function applyPagination(rows: Customer[], page: number, rowsPerPage: number): Customer[] {
-  return rows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 }
