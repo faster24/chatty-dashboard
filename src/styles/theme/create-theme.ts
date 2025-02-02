@@ -1,5 +1,4 @@
 import { experimental_extendTheme as extendTheme } from '@mui/material/styles';
-
 import { colorSchemes } from './color-schemes';
 import { components } from './components/components';
 import { shadows } from './shadows';
@@ -19,20 +18,6 @@ declare module '@mui/material/styles/createPalette' {
     800: string;
     900: string;
     950: string;
-  }
-
-  interface Palette {
-    neutral: PaletteRange;
-  }
-
-  interface PaletteOptions {
-    neutral?: PaletteRange;
-  }
-
-  interface TypeBackground {
-    level1: string;
-    level2: string;
-    level3: string;
   }
 }
 

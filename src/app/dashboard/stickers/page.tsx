@@ -58,7 +58,7 @@ export default function Page() {
 
   useEffect(() => {
     fetchStickers().catch((error) => {
-      console.error('Error in fetchStickers:', error);
+      console.error('Error fetching stickers:', error);
     });
   }, []);
 
@@ -80,11 +80,9 @@ export default function Page() {
       toast.error('Please select a file before uploading.');
       return;
     }
-
     const formData = new FormData();
     formData.append('image', file);
     formData.append('code', code);
-
     try {
       setLoading(true);
       await axios.post(`${API_BASE_URL}/sticker`, formData, {
@@ -95,7 +93,8 @@ export default function Page() {
       toast.success('Successfully Uploaded');
       await fetchStickers(); // Refresh table
     } catch (error) {
-      console.error('Error uploading file:', error);
+      console.error('Error uploading sticker:', error);
+      toast.error('Failed to upload sticker');
     } finally {
       setLoading(false);
     }
@@ -117,41 +116,36 @@ export default function Page() {
   const indexOfFirstRow = indexOfLastRow - rowsPerPage;
   const currentRows = stickers.slice(indexOfFirstRow, indexOfLastRow);
 
-  const nextPage = (): void => {
+  const nextPage = () => {
     if (currentPage < Math.ceil(stickers.length / rowsPerPage)) {
-      setCurrentPage(currentPage + 1);
+      setCurrentPage((prevPage) => prevPage + 1); // Fixed: Use braces for clarity
     }
   };
 
-  const prevPage = (): void => {
+  const prevPage = () => {
     if (currentPage > 1) {
-      setCurrentPage(currentPage - 1);
+      setCurrentPage((prevPage) => prevPage - 1); // Fixed: Use braces for clarity
     }
   };
 
   return (
     <Stack spacing={3} sx={{ maxWidth: '900px', mx: 'auto', p: 3 }}>
       <ToastContainer />
-
       <Typography variant="h4" component="h1" sx={{ textAlign: 'center', mt: 2 }}>
         Stickers
       </Typography>
-
       <Box display="flex" alignItems="center" gap={2} sx={{ p: 3, backgroundColor: '#f5f5f5', borderRadius: 2, boxShadow: 1 }}>
         <FormControl fullWidth>
           <TextField label="Code Name" value={code} onChange={(e) => setCode(e.target.value)} fullWidth />
         </FormControl>
-
         <Button component="label" variant="contained" startIcon={<UploadIcon />}>
           Upload
           <VisuallyHiddenInput type="file" onChange={handleFileChange} />
         </Button>
-
         <Button variant="contained" color="primary" onClick={handleUpload} disabled={loading}>
           {loading ? 'Uploading...' : 'Submit'}
         </Button>
       </Box>
-
       <TableContainer component={Paper} sx={{ borderRadius: 2, boxShadow: 2 }}>
         <Table>
           <TableHead>
@@ -189,7 +183,11 @@ export default function Page() {
                   Previous
                 </Button>
                 Page {currentPage} of {Math.ceil(stickers.length / rowsPerPage)}
-                <Button onClick={nextPage} disabled={currentPage === Math.ceil(stickers.length / rowsPerPage)} endIcon={<ArrowRight />}>
+                <Button
+                  onClick={nextPage}
+                  disabled={currentPage === Math.ceil(stickers.length / rowsPerPage)}
+                  endIcon={<ArrowRight />}
+                >
                   Next
                 </Button>
               </TableCell>
