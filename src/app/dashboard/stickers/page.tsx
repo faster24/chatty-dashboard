@@ -58,7 +58,7 @@ export default function Page() {
 
   useEffect(() => {
     fetchStickers().catch((error) => {
-      console.error('Error fetching stickers:', error);
+      return;
     });
   }, []);
 
@@ -67,12 +67,13 @@ export default function Page() {
       const res = await axios.get<{ data: Sticker[] }>(`${API_BASE_URL}/stickers`);
       setStickers(res.data.data);
     } catch (error) {
-      console.error('Error fetching stickers:', error);
+      return;
     }
   };
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
     setFile(event.target.files?.[0] ?? null);
+    return;
   };
 
   const handleUpload = async (): Promise<void> => {
@@ -93,7 +94,6 @@ export default function Page() {
       toast.success('Successfully Uploaded');
       await fetchStickers(); // Refresh table
     } catch (error) {
-      console.error('Error uploading sticker:', error);
       toast.error('Failed to upload sticker');
     } finally {
       setLoading(false);
@@ -106,7 +106,6 @@ export default function Page() {
       toast.warn('Deleted successfully');
       setStickers((prevStickers) => prevStickers.filter((sticker) => sticker._id !== id));
     } catch (error) {
-      console.error('Error deleting sticker:', error);
       toast.error('Failed to delete sticker');
     }
   };
@@ -124,7 +123,7 @@ export default function Page() {
 
   const prevPage = () => {
     if (currentPage > 1) {
-      setCurrentPage((prevPage) => prevPage - 1); // Fixed: Use braces for clarity
+      setCurrentPage((item) => item - 1); // Fixed: Use braces for clarity
     }
   };
 
@@ -136,7 +135,7 @@ export default function Page() {
       </Typography>
       <Box display="flex" alignItems="center" gap={2} sx={{ p: 3, backgroundColor: '#f5f5f5', borderRadius: 2, boxShadow: 1 }}>
         <FormControl fullWidth>
-          <TextField label="Code Name" value={code} onChange={(e) => setCode(e.target.value)} fullWidth />
+          <TextField label="Code Name" value={code} onChange={(e) => {setCode(e.target.value);}} fullWidth />
         </FormControl>
         <Button component="label" variant="contained" startIcon={<UploadIcon />}>
           Upload
