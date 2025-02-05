@@ -57,7 +57,13 @@ export default function Page() {
   const rowsPerPage = 4;
 
   useEffect(() => {
-    fetchStickers().catch((error) => {
+    fetchStickers().catch((error: unknown) => {
+      if (error instanceof Error) {
+        toast.console.error(`${error.message}`);
+      } else {
+        toast.console.error('An unknown error occurred');
+      }
+
       return;
     });
   }, []);
