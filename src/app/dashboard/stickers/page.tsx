@@ -59,7 +59,7 @@ export default function Page() {
   useEffect(() => {
     fetchStickers().catch((error: unknown) => {
       if (error instanceof Error) {
-        toast.error(${error.message});
+        toast.error(error.message);
       } else {
         toast.error('An unknown error occurred');
       }
