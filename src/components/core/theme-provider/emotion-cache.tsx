@@ -61,13 +61,13 @@ export default function NextAppDirEmotionCacheProvider(props: NextAppDirEmotionC
 
       if (typeof style !== 'boolean') {
         if (isGlobal) {
-          globals.push({ name, style });
+          globals.push({ name, style: style || '' });  // Default to empty string if style is undefined
         } else {
           styles += (style || '');  // Default to empty string if style is undefined
           dataEmotionAttribute += ` ${name}`;
         }
       }
-    });
+});
 
     return (
       <React.Fragment>
