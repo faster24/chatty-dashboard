@@ -54,18 +54,51 @@ class AuthClient {
   async signInWithPassword(params: SignInWithPasswordParams): Promise<{ error?: string }> {
     const { email, password } = params;
 
-    // Make API request
+    try {
+      // Make API request to login endpoint
+      const response = await fetch('http://localhost:8000/api/v1/auth/admin/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email,
+          password,
+        }),
+      });
 
-    // We do not handle the API, so we'll check if the credentials match with the hardcoded ones.
-    if (email !== 'kbtcsuperchat@admin.com' || password !== 'password') {
-      return { error: 'Invalid credentials' };
+      // Check if response is ok
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        return {
+          error: errorData.message || `Login failed with status ${response.status}`
+        };
+      }
+
+      // Parse response data
+      const data = await response.json();
+
+      // Check if user has SUPERADMIN role
+      if (data.user?.role !== 'SUPERADMIN') {
+        return { error: 'Access denied. SUPERADMIN role required.' };
+      }
+
+      // Check if token exists in response
+      if (!data.token) {
+        return { error: 'No authentication token received' };
+      }
+
+      // Save token to localStorage
+      localStorage.setItem('custom-auth-token', data.token);
+
+      return {};
+    } catch (error) {
+      console.error('Login error:', error);
+      return {
+        error: error instanceof Error ? error.message : 'Network error occurred'
+      };
     }
-
-    const token = generateToken();
-    localStorage.setItem('custom-auth-token', token);
-
-    return {};
-  }
+}
 
   async resetPassword(_: ResetPasswordParams): Promise<{ error?: string }> {
     return { error: 'Password reset not implemented' };
